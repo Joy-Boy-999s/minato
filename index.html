@@ -1907,6 +1907,64 @@ function texLacquer() {
   return { map: c, normal: normalFromHeight(h, 2.2), rough: r };
 }
 
+/* Namako-kabe — the wall a storehouse in a port town is actually faced with.
+   Square slate tiles hung on the diagonal, with the joints between them filled
+   by a fat half-round bead of white lime plaster standing proud of the tile.
+   The name is the sea cucumber the bead is shaped like.
+
+   It is the most recognisable wall in a Japanese port, and a kura without it
+   is a rendered box. Both families of lines are drawn at a spacing that
+   divides the canvas, so the lattice wraps: translating by W maps x+y=k*s
+   onto x+y=(k+W/s)*s, which is the same set of lines. */
+function texNamako() {
+  const W = 512, H = 512;
+  const c = hcvs(W, H), x = c.getContext('2d');
+  const h = hcvs(W, H), hx = h.getContext('2d');
+  const r = hcvs(W, H), rx = r.getContext('2d');
+  const rnd = mulberry32(613);
+  const S = 64;                                    /* joint spacing, divides W */
+
+  /* the tile field: dark fired slate, mottled so it is not a flat fill */
+  x.fillStyle = '#20242c'; x.fillRect(0, 0, W, H);
+  hx.fillStyle = '#3a3a3a'; hx.fillRect(0, 0, W, H);    /* the tiles sit low  */
+  rx.fillStyle = '#8a8a8a'; rx.fillRect(0, 0, W, H);    /* and fairly smooth  */
+  for (let i = 0; i < 2600; i++) {
+    const px = rnd() * W, py = rnd() * H, rr = .5 + rnd() * 2.1;
+    x.fillStyle = 'rgba(' + (rnd() > .5 ? '150,158,170,' : '8,10,14,') + (.03 + rnd() * .10).toFixed(3) + ')';
+    x.beginPath(); x.arc(px, py, rr, 0, TAU); x.fill();
+  }
+
+  /* the two families of beads, run well past the edges so the round cap of a
+     line never lands inside the tile and reads as a blob */
+  const runs = [];
+  for (let k = -2; k <= (W + H) / S + 2; k++) {
+    runs.push([[k * S - H - 40, -40], [k * S + H + 40, H + 40]]);       /* "/"  */
+    runs.push([[k * S + H + 40, -40], [k * S - H - 40, H + 40]]);       /* "\" */
+  }
+  const stroke = (ctx, wid, style) => {
+    ctx.strokeStyle = style; ctx.lineWidth = wid; ctx.lineCap = 'round';
+    runs.forEach(a => { ctx.beginPath(); ctx.moveTo(a[0][0], a[0][1]); ctx.lineTo(a[1][0], a[1][1]); ctx.stroke(); });
+  };
+  /* into the height map twice: a wide blurred pass so the bead is round rather
+     than a ridge with a cliff either side, then a narrow hard crown */
+  hx.filter = 'blur(3px)'; stroke(hx, 15, '#f2f2f2'); hx.filter = 'none';
+  stroke(hx, 9, '#ffffff');
+  stroke(x, 13, '#847e72');                        /* the lime, gone grey     */
+  stroke(x, 7,  '#968f81');                        /* and its lit crown       */
+  stroke(rx, 13, '#f4f4f4');                       /* chalky, never polished  */
+
+  /* weathering: the bead is what fails first, and it fails downward */
+  for (let i = 0; i < 150; i++) {
+    const sx = rnd() * W, top = rnd() * H, ln = H * (.10 + rnd() * .34);
+    const g = x.createLinearGradient(0, top, 0, top + ln);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(.35, 'rgba(24,28,22,' + (.07 + rnd() * .13).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(sx, top, .8 + rnd() * 3.0, ln);
+  }
+  return { map: c, normal: normalFromHeight(h, 1.9), rough: r };
+}
+
 function texShoji() {
   const W = 1024, H = 768, c = cvs(W, H), x = c.getContext('2d');
   x.clearRect(0, 0, W, H);
@@ -2887,6 +2945,34 @@ function buildQuay() {
      than a banded one, because the whole face lives inside the spray */
   const faceMat  = surface(graniteT, [10, 2], { color: 0x69707f, normal: 1.35, roughness: .95,
     physical: true, clearcoat: .42, ccRough: .22 });
+  /* The reading of the tide the sea gate gets, applied to the largest wall in
+     the frame. A quay face is not one surface either: a green-black band the
+     water never leaves, a weed belt above it, a chalky barnacle line at the
+     top of the tide, and dry salt-bleached granite over the lot. Two and a bit
+     metres of wall rather than seventeen of column, so the bands are packed
+     into a fifth of the height the gate spreads them over. */
+  faceMat.onBeforeCompile = sh => {
+    sh.vertexShader = 'varying float vQy;\nvarying vec3 vQp;\n' + sh.vertexShader
+      .replace('#include <project_vertex>',
+        '#include <project_vertex>\n' +
+        '  vec4 qwp = modelMatrix * vec4(transformed, 1.0);\n' +
+        '  vQy = qwp.y; vQp = qwp.xyz;\n');
+    const bands =
+      '  float qw = 0.055*sin(vQp.x*1.7 + vQp.z*2.1) + 0.028*sin(vQp.x*6.3 - vQp.z*4.7);\n' +
+      '  float qsub   = 1.0 - smoothstep(-0.10 + qw, 0.34 + qw, vQy);\n' +
+      '  float qweed  = exp(-pow((vQy - 0.56 - qw)/0.30, 2.0));\n' +
+      '  float qcrust = exp(-pow((vQy - 1.22 - qw)/0.36, 2.0));\n';
+    sh.fragmentShader = 'varying float vQy;\nvarying vec3 vQp;\n' + sh.fragmentShader
+      .replace('#include <map_fragment>',
+        '#include <map_fragment>\n' + bands +
+        '  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb*vec3(0.22,0.32,0.27), qsub*0.92);\n' +
+        '  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.055,0.090,0.052), qweed*0.62);\n' +
+        '  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.430,0.415,0.375), qcrust*0.38);\n')
+      .replace('#include <roughnessmap_fragment>',
+        '#include <roughnessmap_fragment>\n' +
+        '  roughnessFactor = mix(roughnessFactor, 0.14, max(qsub, qweed*0.72));\n' +
+        '  roughnessFactor = mix(roughnessFactor, 1.00, qcrust*0.85);\n');
+  };
   const copeMat  = surface(graniteT, [12, 1], { color: 0x98a0b2, normal: 1.0, roughness: .88 });
   const deckMat  = surface(lib('deckWood', () => texWood(53, { boards: 9, base: [40, 34, 30] })),
     [3, 6], { color: 0x8b7d70, normal: 1.1, roughness: .96 });
@@ -3212,9 +3298,31 @@ function machiya(x, z, o) {
   /* the body: charred boards below, plaster above on a storehouse */
   const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), o.kura ? plaster : timber);
   body.position.set(0, h / 2, 0); body.castShadow = true; body.receiveShadow = true; g.add(body);
-  if (o.kura) {                                   /* the black plinth of a kura */
-    const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + .12, h * .30, d + .12), timber);
-    plinth.position.set(0, h * .15, 0); g.add(plinth);
+  if (o.kura) {
+    /* The lower wall of a storehouse, faced in namako-kabe and standing proud
+       of the plaster above it by the depth of the tile and its bead.
+
+       The lattice is held to a constant size in metres across a wide frontage
+       and a narrow one, and that is done by scaling the skirt's own UVs rather
+       than the texture's repeat — a box's UVs run 0..1 per face, so a shared
+       material would stretch the diamonds to whatever shape the building is.
+       Scaling the geometry keeps one material and one texture upload for every
+       kura in the port instead of three more per building. */
+    const nam = lib('namakoMat', () => surface(lib('namakoT', () => texNamako()),
+      [1, 1], { color: 0x6e737b, normal: 1.05, roughness: .96, metalness: .02 }));
+    const sh2 = h * .46;
+    const sg = new THREE.BoxGeometry(w + .16, sh2, d + .16);
+    const uv = sg.attributes.uv;
+    for (let i = 0; i < uv.count; i++)
+      uv.setXY(i, uv.getX(i) * Math.max(1, Math.round(w / 3.0)),
+                  uv.getY(i) * Math.max(1, Math.round(sh2 / 3.0)));
+    uv.needsUpdate = true;
+    const skirt = new THREE.Mesh(sg, nam);
+    skirt.position.set(0, sh2 / 2, 0);
+    skirt.castShadow = true; skirt.receiveShadow = true; g.add(skirt);
+    /* the coping course that throws the rain clear of the bead */
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(w + .30, .12, d + .30), tile);
+    cap.position.set(0, sh2 + .06, 0); cap.castShadow = true; g.add(cap);
   }
 
   /* The shop front: lit bays between columns, and the beam over them. Every
@@ -3867,6 +3975,75 @@ function buildBoat(x, z, head, scale, seed, o) {
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(.05, .06, 5.2, 6), post);
   pole.position.set(B * .30, .16, -L * .04);
   pole.rotation.set(Math.PI / 2 - .05, 0, .06); g.add(pole);
+
+  /* ------------------------------------------------ what she works with
+     A hull with thwarts in it is a boat. A hull with fenders over the side,
+     her gear stowed where it falls to hand and a stone hung off the bow is a
+     boat somebody uses. All of it is merged into the one post-timber mesh she
+     already carries, so the whole fit-out is free at the draw call. */
+  const kit = [];
+
+  /* the sole: the loose boards laid over the frames, which is the floor you
+     are actually looking at when you look down into her */
+  kit.push(new THREE.BoxGeometry(B * .52, .045, L * .58).translate(0, -D + .11, -L * .02));
+
+  /* Rope fenders over the outboard side, each on its own lanyard. Three, at
+     the beam and either quarter, which is where a boat lying against stone
+     actually takes the rub. */
+  [-.34, .04, .38].forEach(t => {
+    const wf = widthAt(t), fx = B * .5 * wf + .07, fz = t * L * .5;
+    const sh3 = .34 * Math.pow(Math.abs(t), 2.1) * D;
+    kit.push(new THREE.CylinderGeometry(.085, .095, .34, 7).translate(fx, sh3 - .30, fz));
+    kit.push(new THREE.TorusGeometry(.085, .020, 4, 9).rotateX(Math.PI / 2)
+      .translate(fx, sh3 - .13, fz));
+    kit.push(new THREE.CylinderGeometry(.014, .014, .20, 4).translate(fx, sh3 - .04, fz));
+  });
+
+  /* a coil of spare warp on the foredeck, flaked down flat the way it is
+     stowed rather than dropped in a heap */
+  for (let k = 0; k < 3; k++)
+    kit.push(new THREE.TorusGeometry(.235 - k * .045, .034, 4, 13).rotateX(Math.PI / 2)
+      .translate(0, -D + .16 + k * .052, L * .31));
+
+  /* two baskets and a crate, amidships where the catch goes */
+  kit.push(new THREE.CylinderGeometry(.205, .150, .27, 9).translate(-B * .17, -D + .26, -L * .05));
+  kit.push(new THREE.CylinderGeometry(.175, .130, .23, 9).translate(-B * .09, -D + .24, -L * .13));
+  kit.push(new THREE.BoxGeometry(.42, .30, .34).rotateY(.34).translate(B * .16, -D + .27, -L * .09));
+  /* and the bailer, which every open boat carries and none of them stow */
+  kit.push(new THREE.CylinderGeometry(.085, .070, .15, 8).translate(B * .10, -D + .19, L * .13));
+
+  /* The anchor: a holed stone on a short pennant, hung outboard at the bow.
+     A working wasen this size did not carry iron. */
+  const ax = -B * .30, az = L * .40;
+  /* a coarse sphere rather than a polyhedron: mergeGeos works on indexed
+     geometry, and everything in the Polyhedron family comes back without an
+     index. Six segments by five is faceted enough to read as broken stone. */
+  kit.push(new THREE.SphereGeometry(.21, 6, 5).scale(1, .82, .74).rotateY(.7)
+    .translate(ax, -.34, az));
+  kit.push(new THREE.CylinderGeometry(.020, .020, .40, 4).translate(ax, -.06, az));
+  g.add(new THREE.Mesh(mergeGeos(kit), post));
+
+  /* the net, thrown over the after quarter to dry. It is the one piece that
+     cannot join the merge: it is alpha-cut, and a cut-out sharing a material
+     with solid timber punches holes in the boat. */
+  const net = new THREE.Mesh(new THREE.PlaneGeometry(B * .78, L * .22, 7, 7),
+    lib('boatNetMat', () => new THREE.MeshStandardMaterial({
+      map: tx(texNet(), { wrap: THREE.RepeatWrapping, repeat: [2, 1] }),
+      transparent: true, alphaTest: .28, side: THREE.DoubleSide,
+      color: 0x8f9482, roughness: 1 })));
+  {
+    /* draped rather than laid flat: the middle sags between the gunwale it is
+       hung on and the thwart it is caught under */
+    const pos = net.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const u = pos.getX(i) / (B * .39), v = pos.getY(i) / (L * .11);
+      pos.setZ(i, -.16 * (1 - u * u) * (1 - v * v * .5) - .04);
+    }
+    pos.needsUpdate = true; net.geometry.computeVertexNormals();
+  }
+  net.rotation.set(-Math.PI / 2 + .16, 0, .05);
+  net.position.set(-B * .10, -.16, -L * .26);
+  g.add(net);
 
   /* Freeboard. hullGeo() puts the gunwale at local y = 0 and the keel at
      −D, so a group sitting at the waterline is a boat with her rail exactly
