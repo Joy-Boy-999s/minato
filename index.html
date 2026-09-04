@@ -639,9 +639,19 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
   z-index:1; overflow:visible; pointer-events:none;
 }
 .fg.fg-active .fg-el{
-  opacity:1; transform:none;
+  opacity:1;
+  /* identical to `none` while the two custom properties are at their zero
+     defaults, which is what the entry transition still animates into */
+  transform:translate3d(calc(var(--fgx,0) * 1px), calc(var(--fgy,0) * 1px), 0);
   transition:opacity 1.2s var(--ease-out), transform 1.5s var(--ease-out);
   transition-delay:var(--fg-delay,0ms);
+}
+/* Once the bank has arrived, the transform comes off the transition list so
+   the parallax below can drive it per frame. Left on, every scroll sample
+   would be eased over a second and a half and the plates would swim. */
+.fg.fg-settled .fg-el{
+  transition:opacity .9s var(--ease-out);
+  transition-delay:0ms;
 }
 .fg .fg-el:nth-child(2){ --fg-delay:90ms; }
 .fg .fg-el:nth-child(3){ --fg-delay:180ms; }
@@ -887,13 +897,13 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
   <!-- foreground: the harbour wall arrives first, the pine at the edge, the grass last -->
   <div class="fg" data-fg="harbour" aria-hidden="true">
     <span class="fg-el fg-wall" data-fg-in="left">
-      <img src="minato-assets/foreground/png/temple-wall.webp" alt="" width="1536" height="884" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/temple-wall.webp" alt="" width="1297" height="728" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-pine" data-fg-in="right">
-      <img src="minato-assets/foreground/png/pine-tree.webp" alt="" width="1024" height="1438" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/pine-tree.webp" alt="" width="690" height="1054" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-grass" data-fg-in="up">
-      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1717" height="916" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1257" height="513" loading="lazy" decoding="async">
     </span>
   </div>
   <div class="sec-head" data-rv="fade">
@@ -940,10 +950,10 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
        over the one paragraph explaining a project is a branch that goes. -->
   <div class="fg" data-fg="lanterns" aria-hidden="true">
     <span class="fg-el fg-lantern" data-fg-in="up">
-      <img src="minato-assets/foreground/png/stone-lantern.webp" alt="" width="1024" height="1499" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/stone-lantern.webp" alt="" width="806" height="1176" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-bush" data-fg-in="up">
-      <img src="minato-assets/foreground/png/garden-bush.webp" alt="" width="1717" height="876" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/garden-bush.webp" alt="" width="1321" height="634" loading="lazy" decoding="async">
     </span>
   </div>
   <div class="sec-head" data-rv="fade">
@@ -988,13 +998,13 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
   <!-- foreground: a low periphery for the atlas — breakwater basalt, a wall fragment, grass -->
   <div class="fg" data-fg="craft" aria-hidden="true">
     <span class="fg-el fg-wall fg-el--flip" data-fg-in="right">
-      <img src="minato-assets/foreground/png/temple-wall.webp" alt="" width="1536" height="884" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/temple-wall.webp" alt="" width="1297" height="728" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-stones" data-fg-in="up">
-      <img src="minato-assets/foreground/png/basalt-stones.webp" alt="" width="1536" height="996" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/basalt-stones.webp" alt="" width="1208" height="634" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-grass" data-fg-in="up">
-      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1717" height="916" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1257" height="513" loading="lazy" decoding="async">
     </span>
   </div>
   <div class="sec-head" data-rv="fade">
@@ -1046,13 +1056,13 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
   <!-- foreground: the closing horizon — island, sea shrine, one bank of grass -->
   <div class="fg" data-fg="afterglow" aria-hidden="true">
     <span class="fg-el fg-hill" data-fg-in="up">
-      <img src="minato-assets/foreground/png/hill.webp" alt="" width="1774" height="887" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/hill.webp" alt="" width="1119" height="212" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-ruins" data-fg-in="left">
-      <img src="minato-assets/foreground/png/shrine-ruins.webp" alt="" width="1536" height="1001" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/shrine-ruins.webp" alt="" width="809" height="687" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-grass" data-fg-in="up">
-      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1717" height="916" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1257" height="513" loading="lazy" decoding="async">
     </span>
   </div>
   <div class="eyebrow" data-rv="fade">04 — Get in touch</div>
@@ -1070,10 +1080,10 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
   <!-- foreground: two pieces along the lower edge of the colophon, no more -->
   <div class="fg" data-fg="foot" aria-hidden="true">
     <span class="fg-el fg-bush" data-fg-in="up">
-      <img src="minato-assets/foreground/png/garden-bush.webp" alt="" width="1717" height="876" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/garden-bush.webp" alt="" width="1321" height="634" loading="lazy" decoding="async">
     </span>
     <span class="fg-el fg-grass" data-fg-in="up">
-      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1717" height="916" loading="lazy" decoding="async">
+      <img src="minato-assets/foreground/png/tall-grass.webp" alt="" width="1257" height="513" loading="lazy" decoding="async">
     </span>
   </div>
   <div class="foot-grid">
@@ -1121,6 +1131,7 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
 <div class="rail" id="rail"></div>
 
 <script src="minato-assets/three.min.js"></script>
+<script src="minato-assets/GLTFLoader.js"></script>
 <script>
 /* =====================================================================
    MINATO — an island port town, an hour after sundown.
@@ -1183,6 +1194,22 @@ function fbm(n, x, y, oct, lac, gain) {
 
 /* ------------------------------------------------------------ 1 · canvas */
 function cvs(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+/* The material generators below are all written in 512-space: every stroke
+   width, ring gap and pore length was tuned against that grid. Rather than
+   rescale several hundred literals to get a sharper board, the canvas is
+   allocated TQ times larger and the context pre-scaled, so the identical
+   drawing lands on TQ x the pixels. getContext returns the same context on
+   every call, so the transform survives the `c.getContext('2d')` the
+   generators do for themselves. */
+/* honours ?q=low and ?tex=1 the same way the rest of the quality path does,
+   read straight off the query here because LOW is not declared until the
+   renderer section and these canvases are built from the top of the file */
+const TQ = qn('tex', qs('q', COARSE ? 'low' : 'high') === 'low' ? 1 : 2);
+function hcvs(w, h) {
+  const c = cvs(w * TQ, h * TQ);
+  c.getContext('2d').scale(TQ, TQ);
+  return c;
+}
 const hex = (r, g, b) => 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
 
 /* stacked, up-scaled value noise — 30× faster than a per-pixel fbm and
@@ -1212,13 +1239,16 @@ function fbmCanvas(W, H, seed, octaves, baseCells, contrast) {
 /* height → tangent-space normal map (blur first, then Sobel) */
 function normalFromHeight(hc, strength) {
   const W = hc.width, H = hc.height;
+  const K = W / 512;                       /* how far this map was supersampled */
   const b = cvs(W, H), bx = b.getContext('2d');
-  bx.filter = 'blur(1.1px)'; bx.drawImage(hc, 0, 0); bx.filter = 'none';
+  bx.filter = 'blur(' + (1.1 * K).toFixed(3) + 'px)'; bx.drawImage(hc, 0, 0); bx.filter = 'none';
   const src = bx.getImageData(0, 0, W, H).data;
   const out = cvs(W, H), ox = out.getContext('2d');
   const im = ox.createImageData(W, H), d = im.data;
   const at = (x, y) => src[(((y + H) % H) * W + ((x + W) % W)) * 4] / 255;
-  const s = strength || 2.4;
+  /* the central difference is taken over K x as many texels, so the same
+     relief has to be read K x harder to come back at the same strength */
+  const s = (strength || 2.4) * K;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const gx = (at(x + 1, y) - at(x - 1, y)) * s;
     const gy = (at(x, y + 1) - at(x, y - 1)) * s;
@@ -1361,13 +1391,13 @@ function texPetal() {
    band exactly as high as the spray reaches. */
 function texPlaster() {
   const W = 512, H = 512;
-  const c = cvs(W, H), x = c.getContext('2d');
-  const h = cvs(W, H), hx = h.getContext('2d');
+  const c = hcvs(W, H), x = c.getContext('2d');
+  const h = hcvs(W, H), hx = h.getContext('2d');
   const rnd = mulberry32(233);
   x.fillStyle = '#b9b7ad'; x.fillRect(0, 0, W, H);
   hx.fillStyle = '#808080'; hx.fillRect(0, 0, W, H);
   x.globalAlpha = .55; x.globalCompositeOperation = 'overlay';
-  x.drawImage(fbmCanvas(W, H, 233, 6, 3, .9), 0, 0);
+  x.drawImage(fbmCanvas(W * TQ, H * TQ, 233, 6, 3, .9), 0, 0, W, H);
   x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
 
   /* the spray line */
@@ -1605,9 +1635,9 @@ function texNoren(seed) {
 
 function texWood(seed, opt) {
   const o = opt || {}, W = 512, H = 512;
-  const c = cvs(W, H), x = c.getContext('2d');
-  const h = cvs(W, H), hx = h.getContext('2d');
-  const r = cvs(W, H), rx = r.getContext('2d');
+  const c = hcvs(W, H), x = c.getContext('2d');
+  const h = hcvs(W, H), hx = h.getContext('2d');
+  const r = hcvs(W, H), rx = r.getContext('2d');
   const rnd = mulberry32(seed || 3);
   const base = o.base || [30, 23, 19];
   x.fillStyle = hex(base[0], base[1], base[2]); x.fillRect(0, 0, W, H);
@@ -1721,9 +1751,9 @@ function texWood(seed, opt) {
 
 function texStone(seed, opt) {
   const o = opt || {}, W = 512, H = 512;
-  const c = cvs(W, H), x = c.getContext('2d');
-  const h = cvs(W, H), hx = h.getContext('2d');
-  const r = cvs(W, H), rx = r.getContext('2d');
+  const c = hcvs(W, H), x = c.getContext('2d');
+  const h = hcvs(W, H), hx = h.getContext('2d');
+  const r = hcvs(W, H), rx = r.getContext('2d');
   const rnd = mulberry32(seed || 17);
   const base = o.base || [46, 51, 53];
   x.fillStyle = hex(base[0], base[1], base[2]); x.fillRect(0, 0, W, H);
@@ -1803,11 +1833,11 @@ function texStone(seed, opt) {
 function texLacquer() {
   const W = 512, H = 512;
   const wood = texWood(131, { base: [34, 22, 17], boards: 0 });
-  const c = cvs(W, H), x = c.getContext('2d');
-  const h = cvs(W, H), hx = h.getContext('2d');
-  const r = cvs(W, H), rx = r.getContext('2d');
+  const c = hcvs(W, H), x = c.getContext('2d');
+  const h = hcvs(W, H), hx = h.getContext('2d');
+  const r = hcvs(W, H), rx = r.getContext('2d');
   const rnd = mulberry32(5);
-  x.drawImage(wood.map, 0, 0);
+  x.drawImage(wood.map, 0, 0, W, H);
   hx.fillStyle = '#808080'; hx.fillRect(0, 0, W, H);
   rx.fillStyle = '#8c8c8c'; rx.fillRect(0, 0, W, H);   /* lacquer half-holds a sheen */
 
@@ -1816,11 +1846,11 @@ function texLacquer() {
   x.globalAlpha = 1;
   /* pull the grain back through it */
   x.globalCompositeOperation = 'multiply'; x.globalAlpha = .42;
-  x.drawImage(wood.map, 0, 0);
+  x.drawImage(wood.map, 0, 0, W, H);
   x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
   /* uneven pigment: the brush left it thicker in places */
   x.globalCompositeOperation = 'overlay'; x.globalAlpha = .5;
-  x.drawImage(fbmCanvas(W, H, 313, 5, 3, 1), 0, 0);
+  x.drawImage(fbmCanvas(W * TQ, H * TQ, 313, 5, 3, 1), 0, 0, W, H);
   x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
 
   /* craquelure — a wandering net of hairline cracks in the paint film */
@@ -1854,7 +1884,7 @@ function texLacquer() {
       }
       d.closePath();
     };
-    x.save(); path(x); x.clip(); x.drawImage(wood.map, 0, 0);
+    x.save(); path(x); x.clip(); x.drawImage(wood.map, 0, 0, W, H);
     x.fillStyle = 'rgba(0,0,0,.22)'; x.fillRect(0, 0, W, H); x.restore();
     path(x); x.strokeStyle = 'rgba(196,110,76,.30)'; x.lineWidth = 1.2; x.stroke();
     path(hx); hx.fillStyle = 'rgba(0,0,0,.34)'; hx.fill();
@@ -1872,7 +1902,7 @@ function texLacquer() {
     x.fillStyle = g; x.fillRect(sx, top, w, len);
   }
   rx.globalAlpha = .6; rx.globalCompositeOperation = 'multiply';
-  rx.drawImage(fbmCanvas(W, H, 401, 4, 6, 1.2), 0, 0);
+  rx.drawImage(fbmCanvas(W * TQ, H * TQ, 401, 4, 6, 1.2), 0, 0, W, H);
   rx.globalAlpha = 1; rx.globalCompositeOperation = 'source-over';
   return { map: c, normal: normalFromHeight(h, 2.2), rough: r };
 }
@@ -1923,8 +1953,8 @@ function texRidge() {
    looking snow-covered. What a glazed tile actually does at night is stay
    black and hold one thin specular line along the crown of each rib. */
 function texRoof() {
-  const W = 512, H = 512, c = cvs(W, H), x = c.getContext('2d');
-  const h = cvs(W, H), hx = h.getContext('2d');
+  const W = 512, H = 512, c = hcvs(W, H), x = c.getContext('2d');
+  const h = hcvs(W, H), hx = h.getContext('2d');
   x.fillStyle = '#0d1216'; x.fillRect(0, 0, W, H);
   hx.fillStyle = '#606060'; hx.fillRect(0, 0, W, H);
   const ribs = 14, s = W / ribs;
@@ -1953,9 +1983,9 @@ function texRoof() {
     }
   }
   x.globalCompositeOperation = 'overlay'; x.globalAlpha = .22;
-  x.drawImage(fbmCanvas(256, 256, 211, 5, 3, 1), 0, 0, W, H);
+  x.drawImage(fbmCanvas(256 * TQ, 256 * TQ, 211, 5, 3, 1), 0, 0, W, H);
   x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
-  hx.globalAlpha = .3; hx.drawImage(fbmCanvas(256, 256, 213, 4, 16, 1.2), 0, 0, W, H);
+  hx.globalAlpha = .3; hx.drawImage(fbmCanvas(256 * TQ, 256 * TQ, 213, 4, 16, 1.2), 0, 0, W, H);
   hx.globalAlpha = 1;
   return { map: c, normal: normalFromHeight(h, 2.2) };
 }
@@ -2367,7 +2397,7 @@ const HI = qs('q', COARSE ? 'low' : 'high');
 const LOW = HI === 'low';
 const WANT_POST    = qs('post', '1') !== '0';
 const WANT_SHADOW  = qs('shadow', LOW ? '0' : '1') !== '0';
-const DPR_CAP      = qn('dpr', LOW ? 1.4 : 1.8);
+const DPR_CAP      = qn('dpr', LOW ? 1.5 : 2.2);
 /* the renderer trades resolution for frame rate on its own — the scene is
    fill-bound (an animated water plane, several alpha-blended veils and a
    bloom chain), so pixels are the only knob worth turning on unknown
@@ -2406,7 +2436,7 @@ function tx(canvasEl, o) {
   const t = new THREE.CanvasTexture(canvasEl);
   t.wrapS = t.wrapT = o.wrap || THREE.ClampToEdgeWrapping;
   if (o.repeat) t.repeat.set(o.repeat[0], o.repeat[1]);
-  t.anisotropy = Math.min(o.aniso || 8, maxAniso);
+  t.anisotropy = Math.min(o.aniso || 16, maxAniso);
   if (o.srgb !== false) t.encoding = THREE.sRGBEncoding;
   t.needsUpdate = true;
   return t;
@@ -2422,7 +2452,7 @@ const hdr = (r, g, b) => new THREE.Color().setRGB(r, g, b);
    scales the whole surface toward a polish it should not have. */
 function surface(t, rep, o) {
   o = o || {};
-  const wrap = THREE.RepeatWrapping, aniso = o.aniso || 8;
+  const wrap = THREE.RepeatWrapping, aniso = o.aniso || 16;
   const opt = {
     map: tx(t.map, { wrap: wrap, repeat: rep, aniso: aniso }),
     normalMap: tx(t.normal, { wrap: wrap, repeat: rep, srgb: false, aniso: aniso }),
@@ -2704,7 +2734,7 @@ const SEA_GLSL = [
 ].join('\n');
 
 function buildSea() {
-  const nrm = tx(texWaterNrm(), { wrap: THREE.RepeatWrapping, repeat: [34, 34], srgb: false, aniso: 8 });
+  const nrm = tx(texWaterNrm(), { wrap: THREE.RepeatWrapping, repeat: [34, 34], srgb: false, aniso: 16 });
   WORLD.waterNrm = nrm;
   const mat = new THREE.MeshStandardMaterial({
     color: 0x0a1030, roughness: .10, metalness: .74,
@@ -2746,7 +2776,7 @@ function buildSea() {
         '    normal = perturbNormal2Arb( - vViewPosition, normal, mapN, faceDirection );\n' +
         '  #endif\n');
   };
-  const SEG = LOW ? 110 : 190;
+  const SEG = LOW ? 130 : 288;
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(520, 520, SEG, SEG), mat);
   sea.rotation.x = -Math.PI / 2;
   sea.renderOrder = 1;
@@ -4465,7 +4495,7 @@ function buildLights() {
   key.target.position.set(0, 2.0, -14); scene.add(key.target);
   if (WANT_SHADOW) {
     key.castShadow = true;
-    const S = LOW ? 1024 : 2048;
+    const S = LOW ? 1536 : 4096;
     key.shadow.mapSize.set(S, S);
     const c = key.shadow.camera;
     /* Held to the ground the walk actually crosses. Every metre the frustum
@@ -4473,7 +4503,7 @@ function buildLights() {
        fall on, and at this range that is the difference between a roof edge
        reading as an edge and reading as a smear. */
     c.left = -38; c.right = 38; c.top = 40; c.bottom = -20; c.near = 6; c.far = 140;
-    key.shadow.bias = -0.0009; key.shadow.normalBias = .028; key.shadow.radius = 3.0;
+    key.shadow.bias = -0.00042; key.shadow.normalBias = .020; key.shadow.radius = 2.2;
   }
   scene.add(key); WORLD.key = key;
 
@@ -4720,7 +4750,7 @@ function updateWisps(dt) {
 /* ================================================== 7 · post-processing */
 const POST = { levels: [] };
 const QUAD_VS = 'uniform float uZ;\nvarying vec2 vUv;\nvoid main(){ vUv = uv; gl_Position = vec4( position.xy, uZ, 1.0 ); }';
-const WANT_DOF = qs('dof', '0') !== '0';
+const WANT_DOF = qs('dof', '1') !== '0';
 
 function initPost() {
   POST.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -4746,15 +4776,39 @@ function initPost() {
     POST.depth = new THREE.DepthTexture(w, h);
     POST.depth.type = THREE.UnsignedShortType;
     POST.scene.depthTexture = POST.depth;
-    POST.dofA = new THREE.WebGLRenderTarget(Math.max(2, w >> 1), Math.max(2, h >> 1), O);
-    POST.dofB = new THREE.WebGLRenderTarget(Math.max(2, w >> 1), Math.max(2, h >> 1), O);
+    /* The defocused copy is taken at the frame's own resolution rather than
+       at half of it. Blurring a half-res image and mixing three quarters of
+       it back in does not read as a lens — it reads as a low-resolution
+       frame, because that is what it is. At full rate the out-of-focus
+       harbour keeps its edges and its tile courses; it is simply not in
+       focus. The low path keeps the cheap version. */
+    const dw = LOW ? Math.max(2, w >> 1) : w, dh = LOW ? Math.max(2, h >> 1) : h;
+    POST.dofA = new THREE.WebGLRenderTarget(dw, dh, O);
+    POST.dofB = new THREE.WebGLRenderTarget(dw, dh, O);
   }
   let lw = Math.max(2, w >> 1), lh = Math.max(2, h >> 1);
-  const N = 4;
+  /* Six levels rather than four. The top two are what carry a glow across
+     a third of the frame instead of haloing an inch out from the lamp, and
+     they are the cheapest targets in the chain — each is a quarter of the
+     one above it, so the last two together cost under a sixteenth of the
+     first. This is the whole difference between a lit harbour and a
+     harbour with bright spots in it. */
+  const N = LOW ? 4 : 6;
   for (let i = 0; i < N; i++) {
     POST.levels.push({ a: new THREE.WebGLRenderTarget(lw, lh, O), b: new THREE.WebGLRenderTarget(lw, lh, O), w: lw, h: lh });
     lw = Math.max(2, lw >> 1); lh = Math.max(2, lh >> 1);
   }
+  /* The anamorphic streak and the light shafts both work off the bright pass
+     rather than the frame, so they inherit its threshold for free and never
+     smear anything that was not already a source of light. Both run at a
+     quarter of the frame in each axis: they are the softest things in the
+     composite and nobody has ever resolved a light shaft. */
+  const sw = Math.max(2, w >> 2), shh = Math.max(2, h >> 2);
+  POST.stA = new THREE.WebGLRenderTarget(sw, shh, O);
+  POST.stB = new THREE.WebGLRenderTarget(sw, shh, O);
+  POST.godA = new THREE.WebGLRenderTarget(sw, shh, O);
+  POST.godB = new THREE.WebGLRenderTarget(sw, shh, O);
+
   POST.bright = new THREE.ShaderMaterial({
     uniforms: { tS: { value: null }, uThr: { value: .86 }, uKnee: { value: .50 }, uZ: { value: 0 } },
     vertexShader: QUAD_VS,
@@ -4777,19 +4831,59 @@ function initPost() {
       ' c += texture2D(tS, vUv - uDir*3.2307692308).rgb * 0.0702702703;\n' +
       ' gl_FragColor = vec4(c, 1.0); }'
   });
+  /* A horizontal-only blur, run twice at widening steps. A spherical lens
+     does not do this; a lens with a cylindrical element in front of it does,
+     and the flare it lays across a lamp is the single most cinematic thing
+     available for the price of two quarter-res passes. */
+  POST.streak = new THREE.ShaderMaterial({
+    uniforms: { tS: { value: null }, uDir: { value: new THREE.Vector2(1, 0) }, uZ: { value: 0 } },
+    vertexShader: QUAD_VS,
+    fragmentShader:
+      'uniform sampler2D tS; uniform vec2 uDir; varying vec2 vUv;\n' +
+      'void main(){ vec3 c = vec3(0.0); float wsum = 0.0;\n' +
+      ' for (int i = -8; i <= 8; i++) {\n' +
+      '   float f = float(i);\n' +
+      '   float w = exp(-f*f*0.055);\n' +
+      '   c += texture2D(tS, vUv + uDir*f).rgb * w; wsum += w; }\n' +
+      ' gl_FragColor = vec4(c/wsum, 1.0); }'
+  });
+
+  /* Volumetric shafts. The moon is projected to screen space every frame and
+     the bright pass is marched back toward it, so anything standing between
+     the disc and the lens — a mole, a mast, the gate itself — cuts its own
+     shadow out of the light coming past it. Lamps throw them too, which is
+     correct: they are in the same haze. */
+  POST.god = new THREE.ShaderMaterial({
+    uniforms: { tS: { value: null }, uSun: { value: new THREE.Vector2(.5, .8) },
+                uW: { value: .62 }, uDecay: { value: .955 }, uZ: { value: 0 } },
+    vertexShader: QUAD_VS,
+    fragmentShader:
+      'uniform sampler2D tS; uniform vec2 uSun; uniform float uW; uniform float uDecay;\n' +
+      'varying vec2 vUv;\n' +
+      'void main(){\n' +
+      ' vec2 d = (vUv - uSun) * (uW / 28.0);\n' +
+      ' vec2 uv = vUv; vec3 acc = vec3(0.0); float w = 1.0, ws = 0.0;\n' +
+      ' for (int i = 0; i < 28; i++) { uv -= d; acc += texture2D(tS, uv).rgb * w; ws += w; w *= uDecay; }\n' +
+      ' gl_FragColor = vec4(acc / max(ws, 0.0001), 1.0); }'
+  });
+
   POST.comp = new THREE.ShaderMaterial({
     uniforms: {
       tS: { value: null }, tB: { value: null }, uRes: { value: new THREE.Vector2(w, h) },
       tDof: { value: null }, tDepth: { value: null }, uZ: { value: 0 },
       uFocus: { value: 40 }, uRange: { value: 34 }, uDof: { value: WANT_DOF ? 1 : 0 },
       uCamN: { value: .35 }, uCamF: { value: 320 },
-      uT: { value: 0 }, uBloom: { value: .38 }, uCA: { value: .32 }, uGrain: { value: .016 },
-      uVig: { value: .58 }, uExp: { value: .62 }, uFade: { value: 1 }, uSat: { value: 1.05 }
+      tSt: { value: null }, tGod: { value: null },
+      uT: { value: 0 }, uBloom: { value: .40 }, uCA: { value: .34 }, uGrain: { value: .015 },
+      uVig: { value: .58 }, uExp: { value: .62 }, uFade: { value: 1 }, uSat: { value: 1.10 },
+      uStreak: { value: .26 }, uGod: { value: 0 }, uSharp: { value: .58 }
     },
     vertexShader: QUAD_VS,
     fragmentShader:
       'uniform sampler2D tS; uniform sampler2D tB; uniform vec2 uRes;\n' +
       'uniform float uT, uBloom, uCA, uGrain, uVig, uExp, uFade, uSat;\n' +
+      'uniform sampler2D tSt; uniform sampler2D tGod;\n' +
+      'uniform float uStreak, uGod, uSharp;\n' +
       (WANT_DOF ? 'uniform sampler2D tDof; uniform sampler2D tDepth;\n' +
                   'uniform float uFocus, uRange, uDof, uCamN, uCamF;\n' : '') +
       'varying vec2 vUv;\n' +
@@ -4797,7 +4891,7 @@ function initPost() {
       'void main(){\n' +
       ' vec2 d = vUv - 0.5; float r2 = dot(d,d);\n' +
       ' float ca = uCA * (0.30 + r2*2.6) * 0.0013;\n' +
-      ' vec3 c;\n' +
+      ' vec3 c; float coc = 0.0;\n' +
       ' c.r = texture2D(tS, vUv + d*ca).r;\n' +
       ' c.g = texture2D(tS, vUv).g;\n' +
       ' c.b = texture2D(tS, vUv - d*ca).b;\n' +
@@ -4810,12 +4904,25 @@ function initPost() {
       (WANT_DOF ?
         ' float dz = texture2D(tDepth, vUv).x;\n' +
         ' float vz = (uCamN * uCamF) / ((uCamF - uCamN) * dz - uCamF);\n' +
-        ' float coc = clamp(abs(-vz - uFocus) / uRange, 0.0, 1.0);\n' +
+        ' coc = clamp(abs(-vz - uFocus) / uRange, 0.0, 1.0);\n' +
         /* a gentle curve: everything within a few metres of the plane stays
            genuinely sharp, and the falloff past that is quick */
-        ' coc = pow(coc, 2.0) * uDof * 0.76;\n' +
+        ' coc = pow(coc, 2.6) * uDof * 0.52;\n' +
         ' c = mix(c, texture2D(tDof, vUv).rgb, coc);\n' : '') +
+      /* Unsharp, one texel out, and gated by the circle of confusion so it
+         only ever sharpens what the lens was already holding sharp. Run it
+         flat and it puts a crisp edge on the defocused background, which is
+         the exact opposite of what a lens does. This is what makes tile,
+         board grain and rope read as themselves at distance. */
+      ' vec2 tx = 1.0 / uRes;\n' +
+      ' vec3 blr = (texture2D(tS, vUv + vec2(tx.x, 0.0)).rgb + texture2D(tS, vUv - vec2(tx.x, 0.0)).rgb\n' +
+      '           + texture2D(tS, vUv + vec2(0.0, tx.y)).rgb + texture2D(tS, vUv - vec2(0.0, tx.y)).rgb) * 0.25;\n' +
+      ' c += (c - blr) * uSharp * (1.0 - coc);\n' +
       ' c += texture2D(tB, vUv).rgb * uBloom;\n' +
+      /* the streak runs cold and the shafts warm: the anamorphic flare is
+         coming off moonlight on water, the shafts off paper lanterns */
+      ' c += texture2D(tSt, vUv).rgb * uStreak * vec3(0.86, 0.90, 1.30);\n' +
+      ' c += texture2D(tGod, vUv).rgb * uGod * vec3(1.22, 1.02, 0.86);\n' +
       ' c *= uExp;\n' +
       ' c = aces(c);\n' +
       ' float l = dot(c, vec3(0.2126,0.7152,0.0722));\n' +
@@ -4848,17 +4955,63 @@ function renderPost() {
   /* the defocused copy: one downsample straight into half res, then a
      separated blur across it — two taps of the same kernel the bloom uses */
   if (POST.dofA) {
-    POST.blur.uniforms.tS.value = POST.scene.texture;
-    POST.blur.uniforms.uDir.value.set(2.2 / POST.dofA.width, 0);
-    pass(POST.blur, POST.dofA);
-    POST.blur.uniforms.tS.value = POST.dofA.texture;
-    POST.blur.uniforms.uDir.value.set(0, 2.2 / POST.dofA.height);
-    pass(POST.blur, POST.dofB);
+    const dw = POST.dofA.width, dh = POST.dofA.height;
+    /* At half rate one separated pass was enough, because the downsample was
+       doing most of the blurring. At full rate the same five taps reach half
+       as far in screen space, so the defocus is built from two iterations at
+       widening steps instead — a smooth, wide circle of confusion that is
+       still made of full-resolution samples. Four passes rather than two,
+       and the only place in the chain where that is worth paying. */
+    const it = LOW ? [2.2] : [1.7, 3.9];
+    let src = POST.scene.texture;
+    for (let k = 0; k < it.length; k++) {
+      POST.blur.uniforms.tS.value = src;
+      POST.blur.uniforms.uDir.value.set(it[k] / dw, 0);
+      pass(POST.blur, POST.dofA);
+      POST.blur.uniforms.tS.value = POST.dofA.texture;
+      POST.blur.uniforms.uDir.value.set(0, it[k] / dh);
+      pass(POST.blur, POST.dofB);
+      src = POST.dofB.texture;
+    }
     POST.comp.uniforms.tDof.value = POST.dofB.texture;
     POST.comp.uniforms.tDepth.value = POST.depth;
   }
   POST.bright.uniforms.tS.value = POST.scene.texture;
   pass(POST.bright, L[0].a);
+
+  /* The streak and the shafts both eat the bright pass, and the bloom chain
+     below blurs L[0].a in place — so take the copy now, at a quarter of the
+     frame in each axis, before the first kernel touches it. */
+  if (POST.stA) {
+    POST.up.blending = THREE.NoBlending; POST.up.uniforms.uAmt.value = 1;
+    POST.up.uniforms.tS.value = L[0].a;
+    pass(POST.up, POST.stA);
+
+    /* shafts first, while stA is still the plain bright pass */
+    if (POST.comp.uniforms.uGod.value > .001) {
+      POST.god.uniforms.tS.value = POST.stA.texture;
+      pass(POST.god, POST.godA);
+      /* the march leaves banding along its own rays; one separated blur at
+         this resolution is enough to put it under the grain */
+      POST.blur.uniforms.tS.value = POST.godA.texture;
+      POST.blur.uniforms.uDir.value.set(1.4 / POST.godA.width, 0);
+      pass(POST.blur, POST.godB);
+      POST.blur.uniforms.tS.value = POST.godB.texture;
+      POST.blur.uniforms.uDir.value.set(0, 1.4 / POST.godA.height);
+      pass(POST.blur, POST.godA);
+      POST.comp.uniforms.tGod.value = POST.godA.texture;
+    }
+
+    /* then the flare, which is allowed to overwrite stA on its second pass */
+    POST.streak.uniforms.tS.value = POST.stA.texture;
+    POST.streak.uniforms.uDir.value.set(3.0 / POST.stA.width, 0);
+    pass(POST.streak, POST.stB);
+    POST.streak.uniforms.tS.value = POST.stB.texture;
+    POST.streak.uniforms.uDir.value.set(13.0 / POST.stA.width, 0);
+    pass(POST.streak, POST.stA);
+    POST.comp.uniforms.tSt.value = POST.stA.texture;
+  }
+
   for (let i = 0; i < L.length; i++) {
     if (i > 0) { POST.up.blending = THREE.NoBlending; POST.up.uniforms.uAmt.value = 1; POST.up.uniforms.tS.value = L[i - 1].a; pass(POST.up, L[i].a); }
     POST.blur.uniforms.tS.value = L[i].a; POST.blur.uniforms.uDir.value.set(1 / L[i].w, 0); pass(POST.blur, L[i].b);
@@ -4892,7 +5045,8 @@ const CAM = [
   { p: [  0.0,  6.20, -13.0 ], t: [  0.0, 10.20, -50.0 ], fov: 42 },  /* 4 afterglow   */
   { p: [  0.0,  9.50, -22.0 ], t: [  0.0,  2.60, -44.0 ], fov: 46 }   /* 5 colophon    */
 ];
-const RIG = { prog: 0, smooth: 0, mx: 0, my: 0, tmx: 0, tmy: 0, intro: 0, focus: -1, focusAmt: 0 };
+const RIG = { prog: 0, smooth: 0, mx: 0, my: 0, tmx: 0, tmy: 0, intro: 0, focus: -1, focusAmt: 0,
+              vel: 0, focusLag: 40, chapter: 0, mark: 0 };
 let curveP, curveT, tmpCam;
 
 function buildRig() {
@@ -4932,8 +5086,15 @@ function applyCamera() {
   _p.x += RIG.mx * 0.62 * par; _p.y += RIG.my * 0.34 * par;
   _t.x -= RIG.mx * 0.20 * par; _t.y -= RIG.my * 0.12 * par;
 
+  /* A lens carried at speed rolls a little and opens a little. Both are tiny
+     — a degree and a half at the top of a hard flick — and both are gone
+     within half a second of the scroll stopping, which is the point: it is
+     the *change* that reads as momentum, not the pose. */
+  fov += Math.abs(RIG.vel) * 1.9;
+
   camera.position.copy(_p);
   camera.lookAt(_t);
+  camera.rotation.z += clamp(RIG.vel, -1.7, 1.7) * .027;
   /* what the rig is looking at is what the lens is focused on */
   RIG.focusDist = _p.distanceTo(_t);
   if (Math.abs(camera.fov - fov) > 1e-4) { camera.fov = fov; camera.updateProjectionMatrix(); }
@@ -5071,6 +5232,7 @@ function wireForegroundStages() {
   const ratios = new Map(pairs.map(pair => [pair.section, 0]));
   const homes = new WeakMap(pairs.map(pair => [pair.stage, pair.section]));
   const timers = new WeakMap();
+  const settles = new WeakMap();
   let activeStage = null;
 
   const lift = stage => {
@@ -5090,7 +5252,12 @@ function wireForegroundStages() {
     if (!stage || stage === activeStage) return;
     const pending = timers.get(stage);
     if (pending) clearTimeout(pending);
-    stage.classList.remove('fg-active');
+    const settling = settles.get(stage);
+    if (settling) { clearTimeout(settling); settles.delete(stage); }
+    stage.classList.remove('fg-active', 'fg-settled');
+    stage.querySelectorAll('.fg-el').forEach(el => {
+      el.style.removeProperty('--fgx'); el.style.removeProperty('--fgy');
+    });
     if (REDUCE) { park(stage); return; }
     stage.classList.add('fg-retiring');
     timers.set(stage, setTimeout(() => {
@@ -5109,6 +5276,14 @@ function wireForegroundStages() {
     stage.classList.add('fg-active');
     const prior = activeStage;
     activeStage = stage;
+    /* The entry eases the transform over a second and a half. Only once that
+       is spent does the bank come off the transition and start taking the
+       parallax below, or every scroll sample would be smeared through the
+       same ease and the plates would swim behind the page. */
+    settles.set(stage, setTimeout(() => {
+      stage.classList.add('fg-settled');
+      settles.delete(stage);
+    }, 1900));
     retire(prior);
   };
 
@@ -5127,7 +5302,36 @@ function wireForegroundStages() {
   }, { rootMargin:'-12% 0px -12% 0px', threshold:[0, .12, .32, .55] });
 
   pairs.forEach(pair => observer.observe(pair.section));
+
+  /* The near bank is a set of flats standing at different distances, and the
+     one thing that separates flats from a painted backdrop is that they do
+     not travel together. Each plate is given a depth off its own order in the
+     stage — the wall at the back barely moves, the grass across the very foot
+     of the frame moves most — and driven from how far the section it belongs
+     to has travelled through the viewport, so the bank slides against the
+     reading rather than with it.
+
+     Written as two custom properties rather than as a transform string: the
+     entry animation owns the transform, and this only supplies the numbers
+     inside it. */
+  FG_PARALLAX = () => {
+    if (!activeStage || !activeStage.classList.contains('fg-settled')) return;
+    const home = homes.get(activeStage);
+    if (!home) return;
+    const r = home.getBoundingClientRect();
+    const h = vpH() || 1;
+    /* -1 as the section leaves the top, +1 as it arrives from the bottom */
+    const t = clamp((r.top + r.height * .5 - h * .5) / h, -1.4, 1.4);
+    const els = activeStage.children;
+    for (let i = 0; i < els.length; i++) {
+      const depth = .45 + i * .55;            /* front plates travel furthest */
+      els[i].style.setProperty('--fgx', (RIG.mx * 7.5 * depth).toFixed(2));
+      els[i].style.setProperty('--fgy', (t * 26 * depth).toFixed(2));
+    }
+  };
 }
+/* set by wireForegroundStages once the stages exist; a no-op until then */
+let FG_PARALLAX = null;
 
 /* ------------------------------------------------------ leaving the hero
    Everything along the foot of the hero is spent the moment the walk starts:
@@ -5456,8 +5660,13 @@ function resize() {
     let lw = Math.max(2, pw >> 1), lh = Math.max(2, ph >> 1);
     POST.levels.forEach(L => { L.a.setSize(lw, lh); L.b.setSize(lw, lh); L.w = lw; L.h = lh; lw = Math.max(2, lw >> 1); lh = Math.max(2, lh >> 1); });
     if (POST.dofA) {
-      POST.dofA.setSize(Math.max(2, pw >> 1), Math.max(2, ph >> 1));
-      POST.dofB.setSize(Math.max(2, pw >> 1), Math.max(2, ph >> 1));
+      const dw = LOW ? Math.max(2, pw >> 1) : pw, dh = LOW ? Math.max(2, ph >> 1) : ph;
+      POST.dofA.setSize(dw, dh); POST.dofB.setSize(dw, dh);
+    }
+    if (POST.stA) {
+      const sw = Math.max(2, pw >> 2), shh = Math.max(2, ph >> 2);
+      POST.stA.setSize(sw, shh);  POST.stB.setSize(sw, shh);
+      POST.godA.setSize(sw, shh); POST.godB.setSize(sw, shh);
     }
   }
   /* multisampling is the first thing to go when the budget tightens */
@@ -5565,10 +5774,30 @@ function updateWorld(dt) {
   });
   updatePetals(dt);
   updateWisps(dt);
+  updateProps(dt);
+  /* The focal plane chases the subject rather than being welded to it. A
+     focus puller cannot pull instantly either, and the half second the
+     harbour spends coming back into focus after a fast scroll is the single
+     clearest signal that there is a lens in front of it. */
+  RIG.focusLag = REDUCE ? RIG.focusDist : damp(RIG.focusLag, RIG.focusDist, 2.9, dt);
   if (CARDS.length) CARDS.forEach(C => { const u = C.cam.userData; u.push = damp(u.push, u.want, 3.4, dt); });
 }
 
+/* Each chapter is lit as its own shot. The walk crosses between them on the
+   same curve the camera does, so the grade arrives with the composition
+   rather than snapping at a section boundary — the gate chapter is a stop
+   down and more violet, the lantern street opens up and saturates, and the
+   colophon closes the vignette right in. */
+const GRADE = [
+  /* 0 hero        */ { exp: .62, sat: 1.10, bloom: .40, vig: .58, streak: .26 },
+  /* 1 the sea gate*/ { exp: .57, sat: 1.18, bloom: .47, vig: .66, streak: .36 },
+  /* 2 lanterns    */ { exp: .71, sat: 1.24, bloom: .53, vig: .50, streak: .28 },
+  /* 3 shipwrights */ { exp: .66, sat: 1.13, bloom: .43, vig: .56, streak: .21 },
+  /* 4 afterglow   */ { exp: .59, sat: 1.20, bloom: .51, vig: .63, streak: .40 },
+  /* 5 colophon    */ { exp: .54, sat: 1.06, bloom: .37, vig: .72, streak: .23 }
+];
 let FRAME = 0;
+const _god = new THREE.Vector3();
 function render() {
   FRAME++;
   renderer.setRenderTarget(WANT_POST ? POST.scene : null);
@@ -5579,12 +5808,44 @@ function render() {
   if (WANT_POST) {
     POST.comp.uniforms.uT.value = clock;
     POST.comp.uniforms.uFade.value = fadeIn;
+
+    const gi = clamp(Math.floor(RIG.smooth), 0, GRADE.length - 2);
+    const gf = clamp(RIG.smooth - gi, 0, 1);
+    const A = GRADE[gi], B = GRADE[gi + 1];
+    const spd = Math.abs(RIG.vel), mark = RIG.mark;
+    const U = POST.comp.uniforms;
+    /* the mark is a half-stop lift struck as the walk crosses into a chapter,
+       decaying over about a second — the harbour catching its own light */
+    U.uExp.value    = lerp(A.exp, B.exp, gf) * (1 + mark * .085);
+    U.uSat.value    = lerp(A.sat, B.sat, gf);
+    U.uBloom.value  = lerp(A.bloom, B.bloom, gf) * (1 + mark * .22);
+    U.uVig.value    = lerp(A.vig, B.vig, gf);
+    /* speed widens the flare and pulls the glass apart at the edges: the two
+       artefacts a real lens gives up first when the frame is moving */
+    U.uStreak.value = lerp(A.streak, B.streak, gf) * (1 + spd * .55);
+    U.uCA.value     = .34 + spd * .30;
+    /* Point the march at where the moon actually is this frame. placeMoon
+       slides the disc inboard on a tall viewport, so the shafts have to read
+       its live position rather than the constant they were both built from —
+       otherwise the light comes from a foot to the right of the light. */
+    if (POST.god) {
+      _god.set(WORLD.moon ? WORLD.moon.position.x : MOON.x, MOON.y, MOON.z).project(camera);
+      POST.god.uniforms.uSun.value.set(_god.x * .5 + .5, _god.y * .5 + .5);
+      /* behind the lens, or far enough outside the frame that the rays would
+         all be marching in from off-screen, and the whole pass is skipped */
+      const off = Math.max(Math.abs(_god.x), Math.abs(_god.y));
+      POST.comp.uniforms.uGod.value = _god.z < 1 ? .34 * sat(1 - (off - .40) / .95) : 0;
+    }
     if (POST.dofA) {
-      POST.comp.uniforms.uFocus.value = RIG.focusDist;
+      POST.comp.uniforms.uFocus.value = RIG.focusLag;
       /* the depth of field opens with the subject distance, the way a real
          one does — a close shot on the gate throws the town away, a wide one
          down the channel holds most of the harbour */
-      POST.comp.uniforms.uRange.value = Math.max(14, RIG.focusDist * 1.30);
+      /* A far wider in-focus zone than a real lens of this length would
+         give. The frame is read for its detail as much as for its depth, and
+         a harbour that is only sharp on one plane is a harbour nobody can
+         look at. */
+      POST.comp.uniforms.uRange.value = Math.max(26, RIG.focusDist * 2.10);
       POST.comp.uniforms.uCamN.value = camera.near;
       POST.comp.uniforms.uCamF.value = camera.far;
     }
@@ -5603,12 +5864,29 @@ function frame(now) {
     PERF.acc += raw; PERF.n++;      /* … but the governor reads the truth */
     if (PERF.n >= 40 || PERF.acc > .9) {
       const avg = PERF.acc / PERF.n; PERF.acc = 0; PERF.n = 0;
-      if (avg > .0230 && PERF.scale > .55) { PERF.scale = Math.max(.55, PERF.scale * (avg > .05 ? .64 : .85)); resize(); }
+      /* The floor was low enough that a mid-range GPU could settle at just
+         over half rate and stay there, which reads as a soft frame rather
+         than as a slow one. Resolution is the last thing to give now, and it
+         does not go below three quarters. */
+      if (avg > .0230 && PERF.scale > .78) { PERF.scale = Math.max(.78, PERF.scale * (avg > .05 ? .82 : .92)); resize(); }
       else if (avg < .0138 && PERF.scale < 1) { PERF.scale = Math.min(1, PERF.scale + .08); resize(); }
     }
   }
   RIG.prog = progressFor(scrollY);
+  const wasAt = RIG.smooth;
   RIG.smooth = REDUCE ? RIG.prog : damp(RIG.smooth, RIG.prog, 5.2, dt);
+  /* How fast the walk is being pushed down the harbour, in chapters a second.
+     It is read off the smoothed value rather than off scrollY, so a trackpad
+     flick and a scrollbar drag that cover the same ground in the same time
+     produce the same number, and a wheel notch does not spike it. Everything
+     that reacts to being moved quickly — the roll, the lens, the flare —
+     hangs off this one figure. */
+  const inst = (RIG.smooth - wasAt) / Math.max(dt, 1e-4);
+  RIG.vel = REDUCE ? 0 : damp(RIG.vel, clamp(inst, -2.6, 2.6), 5.5, dt);
+  /* and a mark, struck each time the walk crosses into a new chapter */
+  const ch = Math.round(RIG.smooth);
+  if (ch !== RIG.chapter) { RIG.chapter = ch; RIG.mark = 1; }
+  RIG.mark = damp(RIG.mark, 0, 1.5, dt);
   RIG.mx = damp(RIG.mx, RIG.tmx, 2.6, dt);
   RIG.my = damp(RIG.my, RIG.tmy, 2.6, dt);
   if (INTRO.t0) {
@@ -5619,6 +5897,7 @@ function frame(now) {
 
   applyCamera();
   updateWorld(dt);
+  if (FG_PARALLAX && !REDUCE) FG_PARALLAX();
   render();
   queue();
 }
@@ -5626,6 +5905,156 @@ const TIMER = qs('driver', 'raf') === 'timer';
 function queue() { TIMER ? setTimeout(() => frame(performance.now()), 16) : requestAnimationFrame(frame); }
 
 /* ======================================================== 14 · booting */
+/* ================================================ 6c · the shipped pieces
+   Everything else in this harbour is grown by the code above it. These
+   twelve are not: they are scanned pieces, carrying their own PBR set, and
+   they are here because there is a limit to how much rope, ironwork and
+   carved stone is worth writing a generator for.
+
+   The remesh gave each of them a real height in metres with its origin on
+   the ground, so nothing below needs a scale factor — a lantern is 2.4m
+   because a lantern is 2.4m, and it stands on the quay at QUAY_Y because
+   that is where the quay is. The two hulls and the float string sit on the
+   water instead, and are handed to the same wave sum that carries the
+   procedural boats, so they heave in phase with the surface under them
+   rather than on a clock of their own.
+
+   They load after the harbour is already on screen. Fifteen megabytes of
+   glTF in front of the first frame would trade the whole opening for detail
+   nobody can see yet, so the walk starts without them and they arrive into
+   it, each one fading up over its own second. */
+/* Twenty-three megabytes of glTF is a fair trade on a desktop connection
+   for a quay with real ironwork on it, and a bad one on a phone that is
+   already being handed a reduced harbour. The low path does without them,
+   and ?props=1 forces them back for testing. */
+const WANT_PROPS = qs('props', LOW ? '0' : '1') !== '0'
+                && !!(window.THREE && window.THREE.GLTFLoader);
+const PROPS = [
+  /* the working quay — the gear a port is actually run with */
+  { f: 'derrick',       p: [ -8.2, QUAY_Y,  7.6 ], r:  0.52, sh: 1 },
+  { f: 'net-rack',      p: [  9.0, QUAY_Y,  9.4 ], r: -0.38, sh: 1 },
+  { f: 'ema-rack',      p: [-11.6, QUAY_Y, 14.2 ], r:  0.92, sh: 1 },
+  { f: 'glass-floats',  p: [  7.3, QUAY_Y,  5.1 ], r:  0.30, sh: 1 },
+  /* the pair that frames the head of the wharf, where the walk begins */
+  { f: 'stone-lantern', p: [  5.7, QUAY_Y,  3.5 ], r: -0.22, sh: 1, glow: [ 0.0, 1.42, 0.0 ] },
+  { f: 'stone-lantern', p: [ -5.7, QUAY_Y,  3.5 ], r:  0.26, sh: 1, glow: [ 0.0, 1.42, 0.0 ] },
+  /* a shopfront and a roof run out along the east mole */
+  { f: 'machiya',       p: [ 17.6, MOLE_Y,  6.0 ], r: -0.48, sh: 1 },
+  { f: 'kawara',        p: [-17.0, MOLE_Y + 2.05, 2.2 ], r: 0.18, sh: 1 },
+  { f: 'onigawara',     p: [-17.0, MOLE_Y + 2.62, 2.2 ], r: 0.18, sh: 1 },
+  /* No standalone chochin here. The strung ones are already an instanced
+     mesh guttering in their own vertex shader off a per-instance phase, and
+     one scanned lantern hung beside them has no cord, no run and nothing
+     holding it up — it reads as an orb floating in the channel. A lantern is
+     only a lantern because of what it hangs from. */
+  /* and the smaller inner gate, standing in the water short of the otorii */
+  { f: 'torii',         p: [-13.0,  -0.35, -26.0 ], r:  0.10, s: 0.55, sh: 1 },
+  /* two hulls, moored and afloat */
+  { f: 'wasen',         p: [  6.9,   0.16,  -8.2 ], r: -0.34, float: .92, roll: 1.0 },
+  { f: 'skiff',         p: [ -6.6,   0.12,  -3.4 ], r:  0.58, float: .96, roll: 1.3 }
+];
+
+function buildProps() {
+  if (!WANT_PROPS) return;
+  const loader = new THREE.GLTFLoader();
+  WORLD.props = []; WORLD.floaters = []; WORLD.swingers = [];
+  let pending = PROPS.length;
+
+  PROPS.forEach(P => {
+    loader.load('minato-assets/models/' + P.f + '.glb', gltf => {
+      const g = gltf.scene;
+      g.position.set(P.p[0], P.p[1], P.p[2]);
+      g.rotation.y = P.r || 0;
+      if (P.s) g.scale.setScalar(P.s);
+
+      g.traverse(o => {
+        if (!o.isMesh) return;
+        o.castShadow = !!P.sh && WANT_SHADOW;
+        o.receiveShadow = !!P.sh && WANT_SHADOW;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach(m => {
+          if (!m || !m.isMeshStandardMaterial) return;
+          /* the same dialled-down sky the built surfaces take. A scan comes
+             out of the bakery expecting a studio, and at full strength it
+             picks up enough of the dusk to sit an inch in front of the
+             harbour rather than in it. */
+          m.envMapIntensity = P.env === undefined ? .26 : P.env;
+          /* the albedo arrived de-lit, which is right, but de-lighting also
+             flattens the microcontrast the roughness map was carrying */
+          m.roughness = Math.min(1, m.roughness * .92 + .08);
+          m.fog = true;
+          /* faded up over its own second as it arrives */
+          m.transparent = true; m.opacity = 0;
+          m.needsUpdate = true;
+        });
+      });
+
+      /* a lamp inside the pieces that are meant to be lit from within */
+      if (P.glow) {
+        const l = new THREE.PointLight(0xffab54, 2.1, 9, 2);
+        l.position.set(P.glow[0], P.glow[1], P.glow[2]);
+        g.add(l);
+        g.userData.lamp = l;
+      }
+
+      g.userData.fade = 0;
+      scene.add(g);
+      WORLD.props.push(g);
+
+      if (P.float !== undefined) {
+        WORLD.floaters.push({ g: g, x: P.p[0], z: P.p[2], base: P.p[1],
+                              head: P.r || 0, amt: P.float, roll: P.roll || 1 });
+      }
+      if (P.sway) WORLD.swingers.push({ g: g, amt: P.sway, ph: Math.random() * TAU });
+
+      if (--pending === 0 && WANT_SHADOW && WORLD.key) WORLD.key.shadow.needsUpdate = true;
+    }, undefined, () => {
+      /* a missing piece is a missing piece; the harbour is complete without
+         any of them and must not stall waiting for one */
+      if (--pending === 0 && WANT_SHADOW && WORLD.key) WORLD.key.shadow.needsUpdate = true;
+    });
+  });
+}
+
+function updateProps(dt) {
+  if (!WORLD.props) return;
+  for (let i = 0; i < WORLD.props.length; i++) {
+    const g = WORLD.props[i];
+    if (g.userData.fade < 1) {
+      g.userData.fade = Math.min(1, g.userData.fade + dt * 1.05);
+      const e = easeOut(g.userData.fade);
+      g.traverse(o => {
+        if (!o.isMesh) return;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach(m => { if (m) m.opacity = e; });
+      });
+      if (g.userData.fade >= 1) g.traverse(o => {
+        if (!o.isMesh) return;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        /* off the blended path once it is up: a solid piece drawn transparent
+           sorts against the water instead of writing depth into it */
+        mats.forEach(m => { if (m) { m.transparent = false; m.opacity = 1; m.needsUpdate = true; } });
+      });
+    }
+    if (g.userData.lamp)
+      g.userData.lamp.intensity = 2.1 * (.86 + .20 * Math.sin(clock * (2.3 + i * .41) + i * 1.7));
+  }
+  /* the hulls, on the same wave sum as everything else that floats */
+  for (let i = 0; i < WORLD.floaters.length; i++) {
+    const b = WORLD.floaters[i];
+    b.g.position.y = b.base + wavesAt(b.x, b.z, clock) * b.amt;
+    const roll  = (wavesAt(b.x + 1.4, b.z, clock) - wavesAt(b.x - 1.4, b.z, clock)) * .42 * b.roll;
+    const pitch = -(wavesAt(b.x, b.z + 2.6, clock) - wavesAt(b.x, b.z - 2.6, clock)) * .16;
+    b.g.rotation.set(pitch, b.head, roll);
+  }
+  /* and the hung lantern, on a slower clock than the strung ones */
+  for (let i = 0; i < WORLD.swingers.length; i++) {
+    const w = WORLD.swingers[i];
+    w.g.rotation.z = Math.sin(clock * .74 + w.ph) * w.amt;
+    w.g.rotation.x = Math.sin(clock * .53 + w.ph * 1.7) * w.amt * .6;
+  }
+}
+
 const JOBS = [
   ['Reading the type', () => document.fonts && document.fonts.load('600 320px Wordmark')],
   ['Charting the harbour', () => { initGL(); WORLD.uT = { value: 0 }; buildRig(); buildLights(); }],
@@ -5736,6 +6165,11 @@ function start() {
   running = true; tPrev = performance.now();
   INTRO.t0 = shot !== null ? 0 : (REDUCE ? performance.now() - 4000 : performance.now());
   queue();
+  /* The scanned pieces come down after the first frame is on screen. They are
+     the only bytes on the wire once the page is up, and the harbour is a
+     complete composition without any of them — so a slow connection loses
+     detail off the quay rather than the opening. */
+  setTimeout(buildProps, 400);
   window.__minato = { RIG: RIG, WORLD: WORLD, WORD: WORD, CAM: CAM, POST: POST, renderer: renderer, scene: scene, camera: camera, anchors: () => anchors };
 }
 
