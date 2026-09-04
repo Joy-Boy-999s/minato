@@ -2461,6 +2461,24 @@ const DPR_CAP      = qn('dpr', LOW ? 1.5 : 2.2);
    bloom chain), so pixels are the only knob worth turning on unknown
    hardware */
 const PERF = { scale: 1, acc: 0, n: 0, locked: qs('adapt', '1') === '0' };
+/* What the frame gives up when it cannot hold the rate, and in what order.
+
+   The governor used to have one lever — resolution — and a soft frame is the
+   single worst thing to trade for speed, because it reads as a broken page
+   rather than as a fast one. Everything below is invisible in the sense that
+   matters: a frame without light shafts looks like a frame without light
+   shafts, while a frame at 60% of its pixels looks like a mistake. So the
+   effects go first, cheapest-looking first, and the pixels go last.
+
+   dof: 0 off, 1 at half the frame, 2 at the frame's own resolution. */
+const TIERS = [
+  { god: 0, streak: 0, dof: 0, bloom: 4 },   /* 0 — everything shed          */
+  { god: 0, streak: 1, dof: 1, bloom: 4 },   /* 1 — the flare is nearly free */
+  { god: 1, streak: 1, dof: 1, bloom: 5 },   /* 2 — shafts back              */
+  { god: 1, streak: 1, dof: 2, bloom: 6 }    /* 3 — as authored              */
+];
+const QUAL = { tier: 3, god: 1, streak: 1, dof: 2, bloom: 6 };
+PERF.t0 = 0;
 
 function initGL() {
   if (qs('nogl', '0') !== '0' || !window.THREE) throw new Error('webgl disabled');
@@ -2967,7 +2985,14 @@ function buildQuay() {
         '#include <map_fragment>\n' + bands +
         '  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb*vec3(0.22,0.32,0.27), qsub*0.92);\n' +
         '  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.055,0.090,0.052), qweed*0.62);\n' +
-        '  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.430,0.415,0.375), qcrust*0.38);\n')
+        '  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.430,0.415,0.375), qcrust*0.38);\n' +
+        /* and the rain, which leaves the coping in lines rather than sheets:
+           a high-frequency read across world x, gated to the dry wall above
+           the tide so it never argues with the weed */
+        '  float qstr = smoothstep(0.55, 0.95, sin(vQp.x*5.7)*0.5+0.5)\n' +
+        '             + smoothstep(0.62, 0.98, sin(vQp.x*13.3 + 1.9)*0.5+0.5);\n' +
+        '  float qdry = smoothstep(1.35, 1.85, vQy);\n' +
+        '  diffuseColor.rgb *= 1.0 - clamp(qstr, 0.0, 1.0) * qdry * 0.20;\n')
       .replace('#include <roughnessmap_fragment>',
         '#include <roughnessmap_fragment>\n' +
         '  roughnessFactor = mix(roughnessFactor, 0.14, max(qsub, qweed*0.72));\n' +
@@ -4023,6 +4048,19 @@ function buildBoat(x, z, head, scale, seed, o) {
   kit.push(new THREE.CylinderGeometry(.020, .020, .40, 4).translate(ax, -.06, az));
   g.add(new THREE.Mesh(mergeGeos(kit), post));
 
+  /* the oars, shipped inboard along the gunwale in their crutches, and the
+     tarpaulin bundled against the after thwart */
+  [-1, 1].forEach(sd => {
+    kit.push(new THREE.CylinderGeometry(.042, .052, L * .46, 6)
+      .rotateX(Math.PI / 2).translate(sd * B * .26, -.14, -L * .04));
+    kit.push(new THREE.BoxGeometry(.05, .30, .13).rotateZ(sd * .22)
+      .translate(sd * B * .30, -.02, -L * .20));
+  });
+  kit.push(new THREE.BoxGeometry(.62, .22, .44).rotateY(.22).rotateZ(.08)
+    .translate(-B * .06, -D + .24, -L * .30));
+  /* the name board across the transom, where a boat carries hers */
+  kit.push(new THREE.BoxGeometry(B * .40, .20, .045).translate(0, .04, -L * .486));
+
   /* the net, thrown over the after quarter to dry. It is the one piece that
      cannot join the merge: it is alpha-cut, and a cut-out sharing a material
      with solid timber punches holes in the boat. */
@@ -4102,6 +4140,98 @@ function buildBoats() {
   buildBoat(-(MOLE_X - 4.0), -20.2, 3.02, .92, 404, { cabin: false });
   buildBoat(MOLE_X - 6.2, -23.0, .22, .95, 405, { mast: false });
   buildBoat(-(MOLE_X - 3.8), -6.0, 3.12, .82, 406, { mast: false, cabin: false });
+}
+
+/* ------------------------------------------------- what the wharf is worn by
+   The quay top is the one surface the walk actually crosses, and until now it
+   was a granite tile with nothing standing on it. Three things go on it, and
+   all three are merged, so the whole lot is three draw calls.
+
+   The puddles are the reason to bother. A wet patch at night is not a texture,
+   it is a mirror lying flat under a street of paper lanterns, and it is the
+   cheapest way to get the light overhead into the bottom of the frame. */
+function buildWharfDetail() {
+  const M = WORLD.mat; if (!M) return;
+  const rnd = mulberry32(747);
+  const bolls = [], iron = [], wet = [];
+
+  /* bollards along the coping, and the ring each one carries. Spaced off the
+     walk's own corridor so the rig never has to pass through one. */
+  for (let i = -5; i <= 5; i++) {
+    const bx = i * 5.4 + (rnd() - .5) * .7;
+    if (Math.abs(bx) < 3.4) continue;                 /* the steps live here */
+    const bz = QUAY_Z0 + .35;
+    bolls.push(new THREE.CylinderGeometry(.16, .19, .58, 10).translate(bx, QUAY_Y + .29, bz));
+    bolls.push(new THREE.CylinderGeometry(.24, .20, .12, 10).translate(bx, QUAY_Y + .62, bz));
+    /* the ring, hung on the seaward face just under the coping */
+    iron.push(new THREE.TorusGeometry(.17, .028, 5, 12)
+      .rotateY(Math.PI / 2).translate(bx + .30, QUAY_Y - .42, QUAY_Z0 - .30));
+  }
+  /* and a run of rings down the inner face of each mole, where the boats tie */
+  [-1, 1].forEach(sd => {
+    for (let k = 0; k < 7; k++) {
+      const z = -3.5 - k * 5.2;
+      iron.push(new THREE.TorusGeometry(.16, .026, 5, 12)
+        .translate(sd * (MOLE_X + .02), MOLE_Y - .46, z));
+    }
+  });
+
+  /* the gutter that takes the rain off the wharf and over the edge */
+  bolls.push(new THREE.BoxGeometry(2 * MOLE_X1 - 4, .06, .34)
+    .translate(0, QUAY_Y - .02, QUAY_Z0 + 1.35));
+
+  const bm = new THREE.Mesh(mergeGeos(bolls), M.cope);
+  bm.castShadow = true; bm.receiveShadow = true; scene.add(bm);
+  scene.add(new THREE.Mesh(mergeGeos(iron), lib('ironMat', () => new THREE.MeshStandardMaterial({
+    color: 0x2e2a26, roughness: .62, metalness: .78 }))));
+
+  /* Standing water. Laid a few millimetres over the stone, and shaded as what
+     it is — a smooth film on a rough surface, which is a clear coat and not a
+     lower roughness. It reads almost black until something lit is above it. */
+  const wetMat = lib('wetMat', () => {
+    /* At near-mirror with a full share of the radiance map this came back as
+       a flat sheet of the dusk sky — a pink polygon lying on the stone. A
+       puddle at night is almost black: it reflects the sky at a few per cent
+       and the lanterns at a hundred, and it is the lanterns that make it read
+       as water. So the base goes down to nearly nothing, the radiance is cut
+       to under half, and the coat is left sharp so the lamps still land in it. */
+    const m = new THREE.MeshPhysicalMaterial({
+      color: 0x05070d, roughness: .30, metalness: 0,
+      clearcoat: 1.0, clearcoatRoughness: .10,
+      transparent: true, opacity: .74, depthWrite: false
+    });
+    m.userData.env = .42;
+    return m;
+  });
+  const puddle = (px, pz, r, y) => {
+    const g = new THREE.CircleGeometry(r, 20);
+    /* Pulled about so no two are the same disc — but on a smooth function of
+       the angle rather than per vertex. Jittering each vertex on its own gave
+       a twenty-point star, because neighbouring vertices got unrelated radii
+       and the rim zig-zagged between them. Water does not do that. */
+    const pos = g.attributes.position;
+    const pr = mulberry32((px * 71 + pz * 131) | 0);
+    const a1 = pr() * TAU, a2 = pr() * TAU, k = .80 + pr() * .28;
+    for (let i = 0; i < pos.count; i++) {
+      const vx = pos.getX(i), vy = pos.getY(i);
+      const ang = Math.atan2(vy, vx);
+      const f = k * (1 + .20 * Math.sin(ang * 2 + a1) + .11 * Math.sin(ang * 3 + a2));
+      pos.setX(i, vx * f); pos.setY(i, vy * f * .76);
+    }
+    pos.needsUpdate = true;
+    return g.rotateX(-Math.PI / 2).translate(px, y + .006, pz);
+  };
+  for (let i = 0; i < 9; i++) {
+    const px = (rnd() - .5) * 17, pz = QUAY_Z0 + 1.2 + rnd() * 9;
+    if (Math.abs(px) < 2.6) continue;
+    wet.push(puddle(px, pz, .7 + rnd() * 1.5, QUAY_Y));
+  }
+  [-1, 1].forEach(sd => {
+    for (let i = 0; i < 7; i++)
+      wet.push(puddle(sd * (MOLE_X + 1.4 + rnd() * 5.4), -2 - rnd() * 34, .55 + rnd() * 1.2, MOLE_Y));
+  });
+  const wm = new THREE.Mesh(mergeGeos(wet), wetMat);
+  wm.renderOrder = 3; scene.add(wm);
 }
 
 /* ------------------------------------------------------- the port's gear
@@ -5121,6 +5251,25 @@ function initPost() {
       '}'
   });
 }
+/* Apply a tier. Only the defocus costs anything to change — it owns two
+   render targets that have to be resized — so the others are read per frame
+   straight off QUAL and cost nothing to flip. */
+function applyTier(t) {
+  t = clamp(t | 0, 0, TIERS.length - 1);
+  const was = QUAL.dof;
+  QUAL.tier = t;
+  Object.assign(QUAL, TIERS[t]);
+  if (LOW) QUAL.dof = Math.min(QUAL.dof, 1);
+  if (!WANT_DOF) QUAL.dof = 0;
+  if (POST.comp) POST.comp.uniforms.uDof.value = QUAL.dof ? 1 : 0;
+  if (QUAL.dof !== was && POST.dofA) {
+    const pw = renderer.domElement.width, ph = renderer.domElement.height;
+    const dw = QUAL.dof >= 2 ? pw : Math.max(2, pw >> 1);
+    const dh = QUAL.dof >= 2 ? ph : Math.max(2, ph >> 1);
+    POST.dofA.setSize(dw, dh); POST.dofB.setSize(dw, dh);
+  }
+}
+
 function pass(mat, target, additive) {
   POST.quad.material = mat;
   renderer.setRenderTarget(target || null);
@@ -5131,7 +5280,7 @@ function renderPost() {
   const L = POST.levels;
   /* the defocused copy: one downsample straight into half res, then a
      separated blur across it — two taps of the same kernel the bloom uses */
-  if (POST.dofA) {
+  if (POST.dofA && QUAL.dof) {
     const dw = POST.dofA.width, dh = POST.dofA.height;
     /* At half rate one separated pass was enough, because the downsample was
        doing most of the blurring. At full rate the same five taps reach half
@@ -5139,7 +5288,7 @@ function renderPost() {
        widening steps instead — a smooth, wide circle of confusion that is
        still made of full-resolution samples. Four passes rather than two,
        and the only place in the chain where that is worth paying. */
-    const it = LOW ? [2.2] : [1.7, 3.9];
+    const it = QUAL.dof >= 2 ? [1.7, 3.9] : [2.2];
     let src = POST.scene.texture;
     for (let k = 0; k < it.length; k++) {
       POST.blur.uniforms.tS.value = src;
@@ -5165,7 +5314,7 @@ function renderPost() {
     pass(POST.up, POST.stA);
 
     /* shafts first, while stA is still the plain bright pass */
-    if (POST.comp.uniforms.uGod.value > .001) {
+    if (QUAL.god && POST.comp.uniforms.uGod.value > .001) {
       POST.god.uniforms.tS.value = POST.stA.texture;
       pass(POST.god, POST.godA);
       /* the march leaves banding along its own rays; one separated blur at
@@ -5180,6 +5329,7 @@ function renderPost() {
     }
 
     /* then the flare, which is allowed to overwrite stA on its second pass */
+    if (QUAL.streak) {
     POST.streak.uniforms.tS.value = POST.stA.texture;
     POST.streak.uniforms.uDir.value.set(3.0 / POST.stA.width, 0);
     pass(POST.streak, POST.stB);
@@ -5187,15 +5337,17 @@ function renderPost() {
     POST.streak.uniforms.uDir.value.set(13.0 / POST.stA.width, 0);
     pass(POST.streak, POST.stA);
     POST.comp.uniforms.tSt.value = POST.stA.texture;
+    }
   }
 
-  for (let i = 0; i < L.length; i++) {
+  const NB = Math.min(QUAL.bloom, L.length);
+  for (let i = 0; i < NB; i++) {
     if (i > 0) { POST.up.blending = THREE.NoBlending; POST.up.uniforms.uAmt.value = 1; POST.up.uniforms.tS.value = L[i - 1].a; pass(POST.up, L[i].a); }
     POST.blur.uniforms.tS.value = L[i].a; POST.blur.uniforms.uDir.value.set(1 / L[i].w, 0); pass(POST.blur, L[i].b);
     POST.blur.uniforms.tS.value = L[i].b; POST.blur.uniforms.uDir.value.set(0, 1 / L[i].h); pass(POST.blur, L[i].a);
   }
   POST.up.blending = THREE.AdditiveBlending; POST.up.uniforms.uAmt.value = .52;
-  for (let i = L.length - 1; i > 0; i--) { POST.up.uniforms.tS.value = L[i].a; pass(POST.up, L[i - 1].a, true); }
+  for (let i = NB - 1; i > 0; i--) { POST.up.uniforms.tS.value = L[i].a; pass(POST.up, L[i - 1].a, true); }
   POST.comp.uniforms.tS.value = POST.scene.texture;
   POST.comp.uniforms.tB.value = L[0].a;
   pass(POST.comp, null);
@@ -5837,7 +5989,8 @@ function resize() {
     let lw = Math.max(2, pw >> 1), lh = Math.max(2, ph >> 1);
     POST.levels.forEach(L => { L.a.setSize(lw, lh); L.b.setSize(lw, lh); L.w = lw; L.h = lh; lw = Math.max(2, lw >> 1); lh = Math.max(2, lh >> 1); });
     if (POST.dofA) {
-      const dw = LOW ? Math.max(2, pw >> 1) : pw, dh = LOW ? Math.max(2, ph >> 1) : ph;
+      const dw = QUAL.dof >= 2 ? pw : Math.max(2, pw >> 1);
+      const dh = QUAL.dof >= 2 ? ph : Math.max(2, ph >> 1);
       POST.dofA.setSize(dw, dh); POST.dofB.setSize(dw, dh);
     }
     if (POST.stA) {
@@ -5999,7 +6152,7 @@ function render() {
     U.uVig.value    = lerp(A.vig, B.vig, gf);
     /* speed widens the flare and pulls the glass apart at the edges: the two
        artefacts a real lens gives up first when the frame is moving */
-    U.uStreak.value = lerp(A.streak, B.streak, gf) * (1 + spd * .55);
+    U.uStreak.value = QUAL.streak ? lerp(A.streak, B.streak, gf) * (1 + spd * .55) : 0;
     U.uCA.value     = .34 + spd * .30;
     /* Point the march at where the moon actually is this frame. placeMoon
        slides the disc inboard on a tall viewport, so the shafts have to read
@@ -6011,7 +6164,8 @@ function render() {
       /* behind the lens, or far enough outside the frame that the rays would
          all be marching in from off-screen, and the whole pass is skipped */
       const off = Math.max(Math.abs(_god.x), Math.abs(_god.y));
-      POST.comp.uniforms.uGod.value = _god.z < 1 ? .34 * sat(1 - (off - .40) / .95) : 0;
+      POST.comp.uniforms.uGod.value = (QUAL.god && _god.z < 1)
+        ? .34 * sat(1 - (off - .40) / .95) : 0;
     }
     if (POST.dofA) {
       POST.comp.uniforms.uFocus.value = RIG.focusLag;
@@ -6037,16 +6191,27 @@ function frame(now) {
   tPrev = now; clock += dt;
   fadeIn = INTRO.t0 ? sat((now - INTRO.t0) / 700) : 1;
 
-  if (!PERF.locked && clock > 2.2) {
+  /* The warm-up is measured in wall time, not in scene time. clock advances
+     by min(raw, 0.05), so gating on it asked for forty-four frames before the
+     governor was allowed its first opinion — two seconds on a machine that is
+     coping, and most of a minute on the machine that actually needs rescuing.
+     The slower the frame, the longer it used to take to admit there was a
+     problem, which is exactly backwards. */
+  if (!PERF.t0) PERF.t0 = now;
+  if (!PERF.locked && now - PERF.t0 > 1500) {
     PERF.acc += raw; PERF.n++;      /* … but the governor reads the truth */
     if (PERF.n >= 40 || PERF.acc > .9) {
       const avg = PERF.acc / PERF.n; PERF.acc = 0; PERF.n = 0;
-      /* The floor was low enough that a mid-range GPU could settle at just
-         over half rate and stay there, which reads as a soft frame rather
-         than as a slow one. Resolution is the last thing to give now, and it
-         does not go below three quarters. */
-      if (avg > .0230 && PERF.scale > .78) { PERF.scale = Math.max(.78, PERF.scale * (avg > .05 ? .82 : .92)); resize(); }
-      else if (avg < .0138 && PERF.scale < 1) { PERF.scale = Math.min(1, PERF.scale + .08); resize(); }
+      if (avg > .0230) {
+        /* shed an effect first; only start giving away pixels once there is
+           nothing left to turn off */
+        if (QUAL.tier > 0) applyTier(QUAL.tier - 1);
+        else if (PERF.scale > .62) { PERF.scale = Math.max(.62, PERF.scale * (avg > .05 ? .82 : .92)); resize(); }
+      } else if (avg < .0138) {
+        /* and take the pixels back before the effects, for the same reason */
+        if (PERF.scale < 1) { PERF.scale = Math.min(1, PERF.scale + .08); resize(); }
+        else if (QUAL.tier < TIERS.length - 1) applyTier(QUAL.tier + 1);
+      }
     }
   }
   RIG.prog = progressFor(scrollY);
@@ -6243,13 +6408,14 @@ const JOBS = [
   ['Trimming the lamps', () => buildLanterns()],
   ['Mooring the boats', () => buildBoats()],
   ['Planting the cherries', () => buildTrees()],
-  ['Landing the cargo', () => { buildGear(); buildFloats(); }],
+  ['Landing the cargo', () => { buildGear(); buildFloats(); buildWharfDetail(); }],
   ['Letting the gulls up', () => { buildBirds(); buildDrift(); }],
   ['Painting the near bank', () => buildForeground()],
   ['Cutting the word', () => buildWordmark()],
   ['Raising the mist', () => { buildAtmosphere(); buildPetalFall(); buildWisps(); }],
   ['Lighting the water', () => {
     initPost(); buildCards();
+    applyTier(qn('tier', LOW ? 1 : 3));
     /* Every glow in the harbour is a quad that has to be turned to the lens.
        Collecting them once here beats walking the graph every frame, and the
        scene never gains another after this point. */
@@ -6347,7 +6513,11 @@ function start() {
      complete composition without any of them — so a slow connection loses
      detail off the quay rather than the opening. */
   setTimeout(buildProps, 400);
-  window.__minato = { RIG: RIG, WORLD: WORLD, WORD: WORD, CAM: CAM, POST: POST, renderer: renderer, scene: scene, camera: camera, anchors: () => anchors };
+  window.__minato = { RIG: RIG, WORLD: WORLD, WORD: WORD, CAM: CAM, POST: POST, renderer: renderer,
+                      scene: scene, camera: camera, anchors: () => anchors,
+                      /* what the governor has settled on, so a slow machine can be
+                         asked what it gave up rather than guessed at */
+                      QUAL: QUAL, PERF: PERF, tier: t => applyTier(t) };
 }
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(boot, 0);

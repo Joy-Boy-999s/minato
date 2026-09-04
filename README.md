@@ -38,6 +38,8 @@ is relative, so it also works from a repository subpath.
   per-instance phase, and lights the paper from the inside — brightest across the belly, dying into the lacquer
   collars, and dimmer at the silhouette than face on, which is what a diffuser lit from within actually does.
   Three draw calls and no per-frame CPU work for the whole street.
+- Stands the wharf up as a working surface — bollards and their rings along the coping, a run of iron rings down the inner face of each mole where the boats tie, a gutter to take the rain over the edge, and standing water. The puddles are the reason to bother: a wet patch at night is not a texture, it is a mirror lying flat under a street of paper lanterns, and it is the cheapest way to get the light overhead into the bottom of the frame.
+- Degrades by **shedding effects before pixels**. The governor used to have one lever — resolution — and a soft frame is the worst thing to trade for speed, because it reads as a broken page rather than a fast one. It now steps down through four tiers (shafts, then the flare, then the defocus, then bloom depth) and only starts giving away resolution once there is nothing left to turn off. `window.__minato.QUAL` reports what it settled on.
 - Faces every storehouse in **namako-kabe** — square slate tiles hung on the diagonal with a fat half-round bead of lime plaster raised proud of the joints between them. It is the most recognisable wall in a Japanese port and a kura without it is a rendered box. The lattice is held to a constant size in metres across a wide frontage and a narrow one by scaling the skirt's own UVs rather than the texture's repeat, so every kura in the harbour shares one material and one texture upload.
 - Reads the **tide off the quay face** the same way the sea gate reads it off its columns: a green-black band the water never leaves, a weed belt above it, a chalky barnacle line at the top of the tide, and dry salt-bleached granite over the lot — packed into two and a bit metres of wall rather than spread over seventeen of column.
 - Fits every hull out the way a boat that works is fitted out — rope fenders on their own lanyards over the outboard side, the loose sole boards laid over her frames, a warp flaked down flat on the foredeck, baskets and a crate amidships, the bailer nobody stows, a net thrown over the after quarter to dry, and a holed stone on a short pennant hung off the bow, because a wasen this size did not carry iron. All of it merges into the one post-timber buffer she already carries, so the whole fit-out is free at the draw call.
@@ -93,6 +95,7 @@ Useful while working on the scene:
 | `?dof=0` | Turn off the defocus, and with it the depth pass it needs. |
 | `?props=0` / `?props=1` | Skip the scanned props, or force them onto the low path. |
 | `?tex=1` | Generate the material canvases at single rate instead of supersampled. |
+| `?tier=0…3` | Pin the effect tier: 3 as authored, 0 with every optional pass shed. |
 
 `window.__minato` exposes the rig, world handles, camera and renderer once the harbour is up.
 
